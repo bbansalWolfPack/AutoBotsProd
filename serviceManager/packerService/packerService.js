@@ -49,7 +49,7 @@ exports.createImage = function (bot, message, response) {
 
             // Plugins to install
             var plugins = response.result.parameters.pluginList.split(" ");
-            var pluginConfig = "cd/usr/bin;";
+            var pluginConfig = "cd /usr/bin;";
             if (plugins != "none") {
                 for (var i = 0; i < plugins.length; i++) {
                     pluginConfig = pluginConfig.concat("\n" + pluginEnum.get(plugins[i]));
@@ -104,7 +104,7 @@ exports.createImage = function (bot, message, response) {
                                         gcp.makePublic(bucketName, filename, function (flag) {
                                             if (flag) {
                                                 // console.log('callback2 if entered');
-                                                bot.reply(message, `Here is your VM: https://storage.googleapis.com/csc510-bot/${filename}.zip`);
+                                                bot.reply(message, `Here is your VM: https://storage.googleapis.com/csc510-bot/${filename}`);
                                             }
                                             else {
                                                 console.log("Error in makePublic");
