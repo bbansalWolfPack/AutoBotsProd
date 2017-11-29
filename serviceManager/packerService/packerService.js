@@ -50,7 +50,7 @@ exports.createImage = function (bot, message, response) {
             // Plugins to install
             var plugins = response.result.parameters.pluginList.split(" ");
             var pluginConfig = "cd /usr/bin;";
-            if (plugins != "none") {
+            if (plugins != "none" || plugins != "None") {
                 for (var i = 0; i < plugins.length; i++) {
                     pluginConfig = pluginConfig.concat("\n" + pluginEnum.get(plugins[i]));
                 }
