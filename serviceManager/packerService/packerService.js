@@ -79,7 +79,7 @@ exports.createImage = function (bot, message, response) {
 
             console.log("**************     Running packer      ************");
             shell.get(
-                './packer build ../serviceManager/packerService/' + OS + '/userConfig/' + filename + '.json',
+                './packer build ../serviceManager/packerService/' + OS + '/userConfig/' + filename + '.json >> build.log',
                 function (err, data, stderr) {
                     if (err) {
                         console.log(err);
