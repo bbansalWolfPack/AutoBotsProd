@@ -191,7 +191,57 @@ module.exports =
                           } else {
                             console.log("Status code is: " + resp.statusCode)
                             if(!err && resp.statusCode == 201) {
-                              bot.reply(message, "Droplet has been updated Succesfully")
+                              console.log("inside else loop of resize")
+
+                              function executePowerOnIfActive(error, response, body) {
+                                  if(error) {
+                                    console.log("failed to get the actions for the droplet")
+                                    bot.reply(message, "Droplet re-sized, but not powered on. Please manually trigger the power on process.")
+                                  } else {
+                                    var actionsReturned  = response.body.actions;
+                                    var flag = false;
+                                    for(var i = 0; i < actionsReturned.length; i++) {
+                                        var action = actionsReturned[i];
+                                        if(action.id = 36804888 && action.status == "in-progress") {
+                                            flag = true;
+                                            break;
+                                        }
+                                    }
+                                    if(flag == true) {
+                                      console.log("still in progress")
+                                      console.log("...");
+                                        setTimeout(function () {
+                                            client.getActions(resId, executePowerOnIfActive);
+                                        }, 1000);
+                                    } else {
+                                      console.log("resize completed")
+                                      client.powerOn(resId, saveUpdatedConfig);
+                                    }
+                                  }
+                              }
+
+                              function saveUpdatedConfig(error, response, body) {
+                                  console.log(response.body);
+                                  if(error) {
+                                    console.log("failed to power on the droplet")
+                                    bot.reply(message, "Failed to power on the updated Droplet. You can power on droplet from Digital Ocean UI")
+                                  } else {
+                                      if(!error && response.statusCode == 201) {
+                                         Reservation.findOneAndUpdate({"Reservation.droplet.id": resId }, {$set: {"Request.config": newConfig}}, function (err, result) {
+                                               if (err) {
+                                                  console.log("Failed to update the config in DB")
+                                                  bot.reply(message, "Failed to update config in the database...")
+                                               } else {
+                                                   console.log("config updated on the database");
+                                                   bot.reply(message, "Droplet has been updated Succesfully")
+                                              }
+                                        });
+                                      }
+                                  }
+                              }
+
+                              client.getActions(resId, executePowerOnIfActive);
+
                             } else {
                               bot.reply(message, "Error serving the request: Seems like you tried to downgrade your droplet. Digital Ocean Droplets can not be downsized.")
                             }
@@ -387,6 +437,21 @@ var client =
       // mocking service call here
       //nock("https://api.digitalocean.com").post("/v2/droplets/"+ dropletId + "/actions", data).reply(201, updateData)
       needle.post("https://api.digitalocean.com/v2/droplets/" + dropletId + "/actions", data, {headers:headers,json:true}, onResponse );
+    },
+
+    powerOn: function(dropletId, onResponse)
+    {
+      var data =
+      {
+        "type": "power_on"
+      };
+      console.log("Attempting to power on the droplet");
+      needle.post("https://api.digitalocean.com/v2/droplets/" + dropletId + "/actions", data, {headers:headers,json:true}, onResponse );
+    },
+
+    getActions: function(dropletId, onResponse)
+    {
+        needle.get("https://api.digitalocean.com/v2/droplets/" + dropletId + "/actions", {headers:headers}, onResponse)
     }
 
 };
